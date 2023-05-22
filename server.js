@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
+
+app.use(bodyParser.json());
 
 async function getTasks() {
   const uri = 'mongodb://localhost:27017';
@@ -34,6 +37,39 @@ app.get('/tasks', async (req, res) => {
   }
 });
 
+app.post('/tasks', async (req, res) => {
+  try {
+    const { task_name, task_description } = req.body;
+
+    // Подключение к серверу MongoDB
+    const uri = 'mongodb://localhost:27017';
+    const client = new MongoClient(uri);
+
+    await client.connect();
+
+    // Выбор базы данных и коллекции
+    const database = client.db('TaskManeger');
+    const collection = database.collection('user_tasks'); 
+
+    // Создание новой задачи
+    const newTask = {
+      task_name,
+      task_description,
+      is_completed: false,
+      created_at: new Date(),
+      completed_at: null
+    };
+
+    // Вставка новой задачи в коллекцию
+    const result = await collection.insertOne(newTask);
+    res.send(result.ops[0]);
+  } catch (err) {
+    res.status(500).send(err.message);
+  } finally {
+    await client.close();
+  }
+});
+
 app.listen(3000, () => {
-  console.log('Сервер запущен на порту 3000');
+  console.log('Server is launch in port 3000');
 });
