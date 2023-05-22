@@ -41,10 +41,12 @@ router.patch('/tasks/:taskId', async (req, res) => {
     const { is_completed } = req.body;
     const { db } = req.app.locals;
     const collection = db.collection('user_tasks');
+    
+    const completed_at = is_completed ? new Date() : null; 
 
     const result = await collection.updateOne(
       { _id: new ObjectId(taskId) },
-      { $set: { is_completed } }
+      { $set: { is_completed, completed_at } }
     );
 
     if (result.matchedCount === 0) {
